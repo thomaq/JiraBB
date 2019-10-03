@@ -1,0 +1,1977 @@
+OBJECT Page 50160 Visiting Report Card
+{
+  OBJECT-PROPERTIES
+  {
+    Date=03.10.19;
+    Time=16:41:05;
+    Modified=Yes;
+    Version List=ABG1067,MC0071,DW05.01;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Besuchsbericht Karte;
+               ENU=Visiting Report Card];
+    SourceTable=Table50083;
+    OnInit=BEGIN
+             EditorVisible := TRUE;
+             IF LicenseCheck.METLicense THEN
+               MCEdit := MCEdit.RichTextControl();
+           END;
+
+    OnOpenPage=VAR
+                 VisitReportLineL@1000000000 : Record 50084;
+               BEGIN
+                 InitGroupVisibility;
+                 SETRANGE("Sub Type Filter",'');
+                 CompanyLine := GroupIDCompany;
+                 ContactLine := GroupIDContact;
+                 TaskLine := GroupIDTask;
+                 ServiceItemLine := GroupIDServiceItem;
+                 ImageLine := GroupIDImage;
+                 NoteLine := GroupIDNote;
+                 DistributionLine := GroupIDDistribution;
+                 EditorSetup.GET;
+
+                 IF LineNo<>0 THEN BEGIN
+                   IF VisitReportLineL.GET("Entry No.",LineNo) THEN
+                     CurrPage.Navigation.PAGE.SetSelectedRecord(VisitReportLineL);
+                   UpdateGroupVisibility(LineNo,ParentLineNo);
+                 END;
+               END;
+
+    OnAfterGetCurrRecord=VAR
+                           CountryRegionL@1000000000 : Record 9;
+                         BEGIN
+                           CurrPage.Navigation.PAGE.LoadDataFromRecord(Rec);
+                           DoubleOptInEnabled := FALSE;
+                           IF CountryRegionL.GET("Customer Country/Region Code") THEN
+                             IF CountryRegionL."EU Standard" THEN
+                               DoubleOptInEnabled := TRUE;
+
+                           PageEditable := Status=Rec.Status::new;
+                           IF NOT PageEditable THEN
+                             CurrPage.Editor.PAGE.SetNotEditable;
+
+                           IF LineNo<>0 THEN
+                             UpdateGroupVisibility(LineNo,ParentLineNo);
+
+                           CurrPage.ctrDragAndDrop.PAGE.Init('VisitingReport',0,FORMAT("Entry No."));//DW05.01
+                         END;
+
+    ActionList=ACTIONS
+    {
+      { 1000000060;  ;ActionContainer;
+                      CaptionML=[DEU=Ablauf;
+                                 ENU=Workflow];
+                      ActionContainerType=NewDocumentItems }
+      { 1000000061;1 ;Action    ;
+                      CaptionML=[DEU=Freigeben;
+                                 ENU=Release];
+                      Promoted=Yes;
+                      Image=ReleaseDoc;
+                      PromotedCategory=Process;
+                      OnAction=BEGIN
+                                 SaveToContent(OldContent."Parent Line No.");
+                                 VALIDATE(Status,Status::released);
+                                 LoadFromContent(Content."Parent Line No.");
+                               END;
+                                }
+      { 1000000064;1 ;Action    ;
+                      Name=DoPrint;
+                      ShortCutKey=Ctrl+P;
+                      CaptionML=[DEU=Drucken;
+                                 ENU=Print];
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Print;
+                      PromotedCategory=New;
+                      OnAction=BEGIN
+                                 Rec.DoPrint;
+                               END;
+                                }
+      { 1000000097;1 ;Action    ;
+                      Ellipsis=Yes;
+                      CaptionML=[DEU=DocuWare-Dokumente;
+                                 ENU=DocuWare-Documents];
+                      Promoted=Yes;
+                      PromotedIsBig=Yes;
+                      Image=Documents;
+                      PromotedCategory=Process;
+                      OnAction=VAR
+                                 lcuDW@1000090453 : Codeunit 90452;
+                               BEGIN
+                                 lcuDW.OpenDWFromVisitingReport(Rec);//DW05.01
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 1000000000;;Container;
+                CaptionML=ENU=Common;
+                ContainerType=ContentArea }
+
+    { 1000000001;1;Group  ;
+                Name=Common;
+                CaptionML=[DEU=Allgemein;
+                           ENU=Common];
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000043;2;Field  ;
+                Name=PingPong;
+                ControlAddIn=[Microsoft.Dynamics.Nav.Client.PingPong;PublicKeyToken=31bf3856ad364e35] }
+
+    { 1000000002;2;Field  ;
+                SourceExpr="Entry No.";
+                Visible=FALSE }
+
+    { 1000000003;2;Field  ;
+                SourceExpr="Visit Date" }
+
+    { 1000000071;2;Field  ;
+                SourceExpr=Status;
+                Editable=FALSE }
+
+    { 1000000016;2;Field  ;
+                SourceExpr="Place of Contact" }
+
+    { 1000000017;2;Field  ;
+                SourceExpr="Visit Category" }
+
+    { 1000000015;2;Field  ;
+                SourceExpr="Campaign No." }
+
+    { 1000000087;2;Field  ;
+                SourceExpr="Job No." }
+
+    { 1000000018;1;Group  ;
+                Name=CompanyContact;
+                CaptionML=[DEU=Firmenkontakt;
+                           ENU=Company Contact];
+                Visible=CompanyContactVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000004;2;Field  ;
+                SourceExpr="Contact No.";
+                OnValidate=BEGIN
+                             VALIDATE("Contact No.");
+                             CurrPage.Navigation.PAGE.LoadDataFromRecord(Rec);
+                           END;
+                            }
+
+    { 1000000005;2;Field  ;
+                SourceExpr="Customer Name" }
+
+    { 1000000006;2;Field  ;
+                SourceExpr="Customer Name 2" }
+
+    { 1000000007;2;Field  ;
+                SourceExpr="Customer Address" }
+
+    { 1000000008;2;Field  ;
+                SourceExpr="Customer Address 2" }
+
+    { 1000000009;2;Field  ;
+                SourceExpr="Customer City" }
+
+    { 1000000010;2;Field  ;
+                SourceExpr="Customer Contact" }
+
+    { 1000000011;2;Field  ;
+                SourceExpr="Customer Post Code" }
+
+    { 1000000012;2;Field  ;
+                SourceExpr="Customer County" }
+
+    { 1000000013;2;Field  ;
+                SourceExpr="Customer Country/Region Code" }
+
+    { 1000000053;2;Field  ;
+                SourceExpr="Company type";
+                Editable=FALSE }
+
+    { 1000000023;2;Field  ;
+                SourceExpr=Industry;
+                Editable=FALSE }
+
+    { 1000000024;2;Field  ;
+                SourceExpr=Material;
+                Editable=FALSE }
+
+    { 1000000065;2;Field  ;
+                SourceExpr="Total Investment";
+                Visible=FALSE;
+                Enabled=FALSE }
+
+    { 1000000066;2;Field  ;
+                SourceExpr="Anual Investment";
+                Visible=FALSE;
+                Enabled=FALSE }
+
+    { 1000000014;2;Field  ;
+                SourceExpr="Anual Tonnage" }
+
+    { 1000000026;2;Field  ;
+                SourceExpr=Lead }
+
+    { 1000000091;2;Field  ;
+                SourceExpr="Responsible Machine Salesp." }
+
+    { 1000000092;2;Field  ;
+                SourceExpr="Responsible Service Salesp." }
+
+    { 1000000027;2;Field  ;
+                SourceExpr="Service Articles offered" }
+
+    { 1000000028;2;Field  ;
+                SourceExpr="Audition for company required" }
+
+    { 1000000032;1;Group  ;
+                CaptionML=[DEU=Personenkontakt;
+                           ENU=Contact];
+                Visible=ContactVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000063;2;Field  ;
+                CaptionML=[DEU=Personen Kontakt No.;
+                           ENU=Person Contact No.];
+                SourceExpr="Person Contact No.";
+                TableRelation=Contact;
+                OnValidate=BEGIN
+                             UpdatePersonContact;
+                           END;
+
+                OnLookup=VAR
+                           ContL@1000000000 : Record 5050;
+                           ContListL@1000000002 : Page 5052;
+                         BEGIN
+                           Cont.SETRANGE("Company No.", "Contact No.");
+                           IF "Person Contact No."<>'' THEN
+                             Cont.GET("Person Contact No.");
+                           ContListL.SETTABLEVIEW(Cont);
+                           ContListL.SETRECORD(Cont);
+                           ContListL.LOOKUPMODE(TRUE);
+                           IF ContListL.RUNMODAL=ACTION::LookupOK THEN BEGIN
+                             ContListL.GETRECORD(Cont);
+                             "Person Contact No." := Cont."No.";
+                             UpdatePersonContact;
+                           END;
+                         END;
+                          }
+
+    { 1000000033;2;Field  ;
+                CaptionML=[DEU=Name;
+                           ENU=Name];
+                SourceExpr="Contact Name";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000034;2;Field  ;
+                CaptionML=[DEU=Name 2;
+                           ENU=Name 2];
+                SourceExpr="Contact Name 2";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000072;2;Field  ;
+                CaptionML=[DEU=Telefonnr.;
+                           ENU=Phone No.];
+                SourceExpr="Contact Phone No.";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000073;2;Field  ;
+                ExtendedDatatype=E-Mail;
+                CaptionML=[DEU=E-Mail;
+                           ENU=E-Mail];
+                SourceExpr="Contact E-Mail";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000035;2;Field  ;
+                ExtendedDatatype=Phone No.;
+                CaptionML=[DEU=Mobiltelefonnr.;
+                           ENU=Mobile Phone No.];
+                SourceExpr="Contact Mobile Phone No.";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000037;2;Field  ;
+                CaptionML=[DEU=Titel Visitenkarte / Signatur;
+                           ENU=Title Business Card/Signature];
+                SourceExpr="Contact Job Title Description";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000025;2;Field  ;
+                CaptionML=[DEU=Double Opt-In Product and Company Information;
+                           ENU=Double Opt-In Product and Company Information];
+                SourceExpr="Double Opt-In Product and Comp";
+                Enabled=DoubleOptInEnabled;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000086;2;Field  ;
+                CaptionML=[DEU="Double Opt-In Customer Survey ";
+                           ENU="Double Opt-In Customer Survey "];
+                SourceExpr="Double Opt-In Customer Survey";
+                Enabled=DoubleOptInEnabled;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000075;2;Field  ;
+                CaptionML=[DEU=Anredecode;
+                           ENU=Salutation Code];
+                SourceExpr="Contact Salutation Code";
+                TableRelation=Salutation;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000036;2;Field  ;
+                CaptionML=[DEU=Akademischer Titel;
+                           ENU=Academic Title];
+                SourceExpr="Contact Job Title";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000038;2;Field  ;
+                CaptionML=[DEU=Verantwortlichkeitscode;
+                           ENU=Job Responsibility Code];
+                SourceExpr="Contact Job ResponsibilityCode";
+                TableRelation="Job Responsibility";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000074;2;Field  ;
+                CaptionML=[DEU=Positionscode;
+                           ENU=Organizational Level Code];
+                SourceExpr="Contact Organizational Level Code";
+                TableRelation="Organizational Level";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000040;2;Field  ;
+                CaptionML=[DEU=Sprachcode;
+                           ENU=Language Code];
+                SourceExpr="Contact Language Code";
+                TableRelation=Language;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000041;2;Field  ;
+                CaptionML=[DEU=Lead;
+                           ENU=Lead];
+                OptionCaptionML=[DEU=" ,Marketing,Verkauf,Service";
+                                 ENU=" ,Marketing,Sales,Service"];
+                SourceExpr="Contact Lead";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000088;2;Field  ;
+                CaptionML=[DEU=Double Opt-In fÅr Produkt und Firmeninformation Anfragemail senden;
+                           ENU=Double Opt-In for product and company information Send request mail];
+                SourceExpr="Dbl. Opt-In Product Requested";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000089;2;Field  ;
+                CaptionML=[DEU=Double Opt-In fÅr Umfragen Anfragemail senden;
+                           ENU=Double opt-in for surveys Send request mail];
+                SourceExpr="Dbl. Opt-In Survey Requested";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000068;2;Field  ;
+                CaptionML=[DEU=PrÅfung Personenkontakt erforderlich;
+                           ENU=Contact check required];
+                SourceExpr="Audition for contact required";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000044;1;Group  ;
+                CaptionML=[DEU=Bemerkung;
+                           ENU=Note];
+                Visible=NoteVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000045;2;Field  ;
+                CaptionML=[DEU=Art der Bemerkung;
+                           ENU=Type of note];
+                OptionCaptionML=DEU=Allgemein,Cutting,Handling,Bonding,Services;
+                SourceExpr="Sub Type";
+                ColumnSpan=4;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                             UpdateSupportingInformation;
+                           END;
+                            }
+
+    { 1000000046;1;Part   ;
+                Name=Editor;
+                AccessByPermission=Codeunit 5137890=X;
+                PagePartID=Page5137890;
+                Visible=NoteVisible;
+                PartType=Page }
+
+    { 1000000047;1;Group  ;
+                CaptionML=[DEU=Bild;
+                           ENU=Image];
+                Visible=ImageVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000049;2;Field  ;
+                CaptionML=[DEU=Bild Beschreibung;
+                           ENU=Image Description];
+                SourceExpr="Image Description";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000094;2;Field  ;
+                CaptionML=[DEU=Drucke Bild;
+                           ENU=Print Picture];
+                SourceExpr="Print Picture";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000051;2;Field  ;
+                SourceExpr=Picture;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                             ImageModified := TRUE;
+                           END;
+                            }
+
+    { 1000000042;1;Group  ;
+                CaptionML=[DEU=Serviceartikel;
+                           ENU=Service Item];
+                Visible=ServiceItemVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000076;2;Field  ;
+                Name=ServiceItemCompetitor;
+                CaptionML=[DEU=Wettbewerberartikel;
+                           ENU=Competitor Item];
+                SourceExpr="Service Item Competitor";
+                OnValidate=VAR
+                             ServiceItemTypeL@1000000000 : Record 50011;
+                           BEGIN
+                             DetailsModified := TRUE;
+                             ServiceItemTypeL.RESET;
+                             ServiceItemTypeL.SETRANGE("Use for Competitor","Service Item Competitor");
+                             ServiceItemTypeL.SETFILTER(Code,'MACHINE|COMPETITOR EQUIPMENT');
+                             IF ServiceItemTypeL.FINDFIRST THEN
+                               "Service Item Type" := ServiceItemTypeL.Code;
+                           END;
+                            }
+
+    { 1000000077;2;Field  ;
+                CaptionML=[DEU=Serviceartikelname intern;
+                           ENU=Service Item Name internal];
+                SourceExpr="Service Item Name internal";
+                OnValidate=VAR
+                             ServiceItemNameinternL@1000000000 : Record 50087;
+                           BEGIN
+                             DetailsModified := TRUE;
+                             IF ServiceItemNameinternL.GET("Service Item Name internal") THEN BEGIN
+                               "Service Item Name external" := ServiceItemNameinternL."Name extern";
+                               "Service Item Description" := ServiceItemNameinternL.Description;
+                             END;
+                           END;
+
+                OnLookup=VAR
+                           ServiceItemNameL@1000000000 : Record 50087;
+                           ServiceItemNamePageL@1000000001 : Page 50170;
+                         BEGIN
+                           ServiceItemNameL.RESET;
+                           ServiceItemNameL.SETRANGE("Service Item Type","Service Item Type");
+                           IF "Service Item Name internal"<>'' THEN
+                             ServiceItemNameL.SETRANGE("Item Name","Service Item Name internal");
+                           IF ServiceItemNameL.FINDFIRST THEN;
+                           ServiceItemNameL.SETRANGE("Item Name");
+                           ServiceItemNamePageL.SETTABLEVIEW(ServiceItemNameL);
+                           ServiceItemNamePageL.SETRECORD(ServiceItemNameL);
+                           ServiceItemNamePageL.LOOKUPMODE(TRUE);
+                           IF ServiceItemNamePageL.RUNMODAL=ACTION::LookupOK THEN BEGIN
+                             ServiceItemNamePageL.GETRECORD(ServiceItemNameL);
+                             "Service Item Name internal" := ServiceItemNameL."Item Name";
+                             "Service Item Name external" := ServiceItemNameL."Name extern";
+                             "Service Item Description" := ServiceItemNameL.Description;
+                           END;
+                         END;
+                          }
+
+    { 1000000078;2;Field  ;
+                CaptionML=[DEU=Serviceartikelname extern;
+                           ENU=Service Item Name external];
+                SourceExpr="Service Item Name external";
+                Enabled="Service Item Competitor";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000079;2;Field  ;
+                CaptionML=[DEU=Beschreibung;
+                           ENU=Description];
+                SourceExpr="Service Item Description";
+                Enabled="Service Item Competitor";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000084;2;Field  ;
+                CaptionML=[DEU=Serviceartikel Status;
+                           ENU=Service Item Status];
+                SourceExpr="Service Item Status";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000048;2;Field  ;
+                CaptionML=[DEU=Artikel Nr.;
+                           ENU=Item No.];
+                SourceExpr="Item No.";
+                TableRelation=Item;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000050;2;Field  ;
+                CaptionML=[DEU=Kommissionsnr.;
+                           ENU=Commission No.];
+                SourceExpr="Service Item Commission No.";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000080;2;Field  ;
+                CaptionML=[DEU=OEM Serviceartikelname;
+                           ENU=OEM Service Item Name];
+                SourceExpr="Service Item OEM Serviceartikelname";
+                Enabled="Service Item Competitor";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000081;2;Field  ;
+                CaptionML=[DEU=Fabrikationsnummer (Altsystem);
+                           ENU=Product No. (Old System)];
+                SourceExpr="Service Item Product No. (Old System)";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000082;2;Field  ;
+                CaptionML=[DEU=Hersteller;
+                           ENU=Manufacturer];
+                SourceExpr="Service Item Manufacturer Code";
+                TableRelation=Manufacturer;
+                Enabled="Service Item Competitor";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+
+                OnLookup=VAR
+                           ManufacturerL@1000000000 : Record 5720;
+                           ManufacturersL@1000000001 : Page 5728;
+                         BEGIN
+                           ManufacturerL.SETRANGE(Competitor,"Service Item Competitor");
+                           IF "Service Item Manufacturer Code"<>'' THEN
+                             ManufacturerL.GET("Service Item Manufacturer Code");
+                           ManufacturersL.SETTABLEVIEW(ManufacturerL);
+                           ManufacturersL.SETRECORD(ManufacturerL);
+                           ManufacturersL.LOOKUPMODE := TRUE;
+                           IF ManufacturersL.RUNMODAL = ACTION::LookupOK THEN BEGIN
+                             ManufacturerL.RESET;
+                             ManufacturersL.GETRECORD(ManufacturerL);
+                             "Service Item Manufacturer Code" := ManufacturerL.Code;
+                             DetailsModified := TRUE;
+                           END;
+                         END;
+                          }
+
+    { 1000000083;2;Field  ;
+                Name=ServiceItemStatusComment;
+                CaptionML=[DEU=Serviceartikel Statusbemerkung;
+                           ENU=Service Item Status Comment];
+                SourceExpr="Service Item Status Comment";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000067;2;Field  ;
+                CaptionML=[DEU=PrÅfung Serviceartikel erforderlich;
+                           ENU=Service Item check required];
+                SourceExpr="Audition for ServItem required";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000052;1;Group  ;
+                CaptionML=[DEU=Serviceartikel;
+                           ENU=Service Item];
+                Visible=ServiceItemOverviewVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000085;2;Part   ;
+                Name=Visiting Report Line Subform;
+                CaptionML=[DEU=Liste aller Serviceartikel;
+                           ENU=List of all service items];
+                SubPageLink=Visiting Entry No.=FIELD(Entry No.);
+                PagePartID=Page50174;
+                PartType=Page }
+
+    { 1000000054;1;Group  ;
+                CaptionML=[DEU=Aufgaben;
+                           ENU=Tasks];
+                Visible=TaskVisible;
+                Editable=PageEditable;
+                GroupType=Group }
+
+    { 1000000055;2;Field  ;
+                CaptionML=[DEU=Zugewiesen an;
+                           ENU=Assigned to];
+                SourceExpr="Task Salesperson Code";
+                TableRelation="ESCM Workflow User";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000058;2;Field  ;
+                CaptionML=[DEU=Workflow Team Code;
+                           ENU=Workflow Team Code];
+                SourceExpr="Task Workflow Team Code";
+                TableRelation="ESCM Workflow Team";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000056;2;Field  ;
+                CaptionML=[DEU=Zu erledigen bis;
+                           ENU=Due Date];
+                SourceExpr="Task Due Date";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000059;2;Field  ;
+                CaptionML=[DEU=Aufgabe Beschreibung;
+                           ENU=Task Description];
+                SourceExpr="Task Description";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000057;2;Field  ;
+                CaptionML=[DEU=Zugewiesene Benutzer ID;
+                           ENU=Task User ID];
+                SourceExpr="Task User ID";
+                Visible=false;
+                OnValidate=VAR
+                             UserMgt@1000000000 : Codeunit 418;
+                           BEGIN
+                             DetailsModified := TRUE;
+                             UserMgt.ValidateUserID("Task User ID");
+                           END;
+
+                OnLookup=VAR
+                           UserMgt@1000000000 : Codeunit 418;
+                         BEGIN
+                           UserMgt.LookupUserID("Task User ID");
+                         END;
+                          }
+
+    { 1000000095;2;Group  ;
+                CaptionML=[DEU=Arbeitsbeschreibung;
+                           ENU=Work Description];
+                GroupType=Group }
+
+    { 1000000039;3;Field  ;
+                CaptionML=[DEU="";
+                           ENU=""];
+                SourceExpr="Task Long Description";
+                MultiLine=Yes;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                           END;
+                            }
+
+    { 1000000069;1;Group  ;
+                CaptionML=[DEU=Verteiler;
+                           ENU=Distribution];
+                Visible=DistributionVisible;
+                GroupType=Group }
+
+    { 1000000090;2;Field  ;
+                CaptionML=[DEU=Verteilen an;
+                           ENU=Distribute to];
+                SourceExpr="Distribution User ID";
+                TableRelation=User;
+                Visible=false;
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                             ESCMWorkflowUser.RESET;
+                             ESCMWorkflowUser.SETFILTER("User ID","Distribution User ID");
+                             IF ESCMWorkflowUser.FINDFIRST THEN
+                               "Distribution Salesperson Code" := ESCMWorkflowUser.Code;
+                           END;
+                            }
+
+    { 1000000096;2;Field  ;
+                CaptionML=[DEU=Verteilen an;
+                           ENU=Distribute to];
+                SourceExpr="Distribution Salesperson Code";
+                TableRelation="ESCM Workflow User";
+                OnValidate=BEGIN
+                             DetailsModified := TRUE;
+                             ESCMWorkflowUser.GET("Distribution Salesperson Code");
+                             "Distribution User ID" := ESCMWorkflowUser."User ID";
+                           END;
+                            }
+
+    { 1000000031;1;Group  ;
+                CaptionML=[DEU=Historie;
+                           ENU=History];
+                GroupType=Group }
+
+    { 1000000022;2;Field  ;
+                SourceExpr="Created by" }
+
+    { 1000000021;2;Field  ;
+                SourceExpr="Created Date" }
+
+    { 1000000070;2;Field  ;
+                Lookup=Yes;
+                DrillDown=Yes;
+                CaptionML=[DEU=Aufgabe Nr.;
+                           ENU=To-do No.];
+                SourceExpr=ToDoNo;
+                Editable=FALSE;
+                LookupPageID=To-do Card;
+                DrillDownPageID=To-do Card;
+                OnLookup=BEGIN
+                           IF Todo.GET(ToDoNo) THEN
+                             PAGE.RUN(5098,Todo);
+                         END;
+                          }
+
+    { 1000000020;2;Field  ;
+                SourceExpr="Last Modified by" }
+
+    { 1000000019;2;Field  ;
+                SourceExpr="Last Modified Date" }
+
+    { 1000000093;2;Field  ;
+                SourceExpr="Workflow Team Code" }
+
+    { 1000000030;0;Container;
+                ContainerType=FactBoxArea }
+
+    { 1000000098;1;Part   ;
+                Name=ctrDragAndDrop;
+                PagePartID=Page90448;
+                PartType=Page }
+
+    { 1000000029;1;Part   ;
+                Name=Navigation;
+                PagePartID=Page50169;
+                PartType=Page;
+                UpdatePropagation=Both }
+
+    { 1000000062;1;Part   ;
+                Name=Support;
+                SubPageView=SORTING(Standard Text Header Code,Line No.)
+                            ORDER(Ascending);
+                SubPageLink=Standard Text Header Code=FIELD(Sub Type Filter);
+                PagePartID=Page50173;
+                PartType=Page }
+
+  }
+  CODE
+  {
+    VAR
+      Cont@1000000043 : Record 5050;
+      Todo@1000000046 : Record 5080;
+      Content@1000000007 : Record 50084;
+      OldContent@1000000006 : Record 50084;
+      SupportingInformation@1000000033 : Record 5130175;
+      ESCMWorkflowUser@1000000094 : Record 5174504;
+      EditorSetup@1000000076 : Record 5137891;
+      LicenseCheck@1000000080 : Codeunit 5130102;
+      EditorVisible@1000000079 : Boolean INDATASET;
+      MCMemo@1000000078 : DotNet "'MCNavTools, Version=1.0.1610.1, Culture=neutral, PublicKeyToken=02c02d083e852751'.ModusConsult.MCNavTools.Memo.MCMemo" RUNONCLIENT;
+      MCEdit@1000000077 : DotNet "'ModusConsult.General.RichTextAddin, Version=1.0.1706.1, Culture=neutral, PublicKeyToken=0ce79eb295cb2aa9'.ModusConsult.General.RichTextAddin.RichTextControl" RUNONCLIENT;
+      PageEditable@1000000075 : Boolean;
+      DoubleOptInEnabled@1000000070 : Boolean;
+      CompanyContactVisible@1000000000 : Boolean;
+      ContactVisible@1000000001 : Boolean;
+      ServiceItemVisible@1000000002 : Boolean;
+      ServiceItemOverviewVisible@1000000063 : Boolean;
+      TaskVisible@1000000003 : Boolean;
+      NoteVisible@1000000004 : Boolean;
+      ImageVisible@1000000005 : Boolean;
+      DistributionVisible@1000000088 : Boolean;
+      DistributionLine@1000000089 : Integer;
+      CompanyLine@1000000064 : Integer;
+      ContactLine@1000000065 : Integer;
+      TaskLine@1000000066 : Integer;
+      ServiceItemLine@1000000067 : Integer;
+      ImageLine@1000000068 : Integer;
+      NoteLine@1000000069 : Integer;
+      "Person Contact No."@1000000040 : Code[20];
+      "Contact Name"@1000000008 : Text[50];
+      "Contact Name 2"@1000000009 : Text[50];
+      "Contact Address"@1000000010 : Text[50];
+      "Contact Address 2"@1000000011 : Text[50];
+      "Contact City"@1000000012 : Text[30];
+      "Contact Post Code"@1000000044 : Code[10];
+      "Contact Currency Code"@1000000013 : Code[10];
+      "Contact Language Code"@1000000014 : Code[10];
+      "Contact County"@1000000081 : Text[50];
+      "Contact Country/Region Code"@1000000015 : Code[10];
+      "Contact Lead"@1000000016 : ' ,Marketing,Maschinenvertrieb,Servicevertrieb';
+      "Audition for contact required"@1000000017 : Boolean;
+      "Contact Phone No."@1000000049 : Text[30];
+      "Contact E-Mail"@1000000050 : Text[80];
+      "Contact Organizational Level Code"@1000000051 : Code[10];
+      "Contact Salutation Code"@1000000052 : Code[10];
+      "Contact Mobile Phone No."@1000000083 : Text[30];
+      "Contact Job Title"@1000000085 : Text[30];
+      "Contact Job Title Description"@1000000084 : Text[50];
+      "Contact Job ResponsibilityCode"@1000000086 : Code[10];
+      "Service Item Status"@1000000018 : ' ,own service item,installed,temporary installed,damaged,removed';
+      "Item No."@1000000019 : Code[20];
+      "Service Item Description"@1000000020 : Text[50];
+      "Audition for ServItem required"@1000000041 : Boolean;
+      "Service Item Attached to"@1000000053 : Code[20];
+      "Service Item Competitor"@1000000061 : Boolean;
+      "Service Item Type"@1000000054 : Code[20];
+      "Service Item Commission No."@1000000055 : Text[20];
+      "Service Item OEM Serviceartikelname"@1000000056 : Text[30];
+      "Service Item Product No. (Old System)"@1000000057 : Text[30];
+      "Service Item Manufacturer Code"@1000000058 : Code[10];
+      "Service Item Name external"@1000000059 : Text[50];
+      "Service Item Name internal"@1000000060 : Text[50];
+      "Service Item Status Comment"@1000000062 : Text;
+      "Task Salesperson Code"@1000000021 : Code[10];
+      "Task int. Contact No."@1000000022 : Code[20];
+      "Task int. Contact Name"@1000000023 : Text[50];
+      "Task Due Date"@1000000024 : Date;
+      "Task Description"@1000000032 : Text[50];
+      "Task User ID"@1000000047 : Code[50];
+      "Distribution User ID"@1000000090 : Code[50];
+      "Distribution Salesperson Code"@1000000093 : Code[10];
+      "Task Workflow Team Code"@1000000048 : Code[20];
+      "Task Long Description"@1000000087 : BigText;
+      DetailsModified@1000000025 : Boolean;
+      ImageModified@1000000029 : Boolean;
+      EditorModified@1000000030 : Boolean;
+      "Sub Type"@1000000026 : 'common,cutting,handling,bonding,services';
+      Image@1000000027 : Record 99008535;
+      "Image Description"@1000000028 : Text[100];
+      EditorMgt@1000000031 : Codeunit 5137890;
+      V_BOND@1000000034 : TextConst 'DEU=V_BOND %1';
+      V_SERV@1000000035 : TextConst 'DEU=V_SERV %1';
+      V_CUTT@1000000036 : TextConst 'DEU=V_CUTT %1';
+      V_HAND@1000000037 : TextConst 'DEU=V_HAND %1';
+      V_COMM@1000000095 : TextConst 'DEU=V_COMM %1';
+      D@1000000038 : TextConst 'DEU=D';
+      E@1000000039 : TextConst 'DEU=E';
+      ToDoNo@1000000042 : Code[20];
+      CountryCodeMandatory@1000000045 : TextConst 'DEU=Bitte fÅllen sie das Feld Land/Region Code aus.;ENU=Please enter a Value to Country/Region Code.';
+      "Double Opt-In Product and Comp"@1000000071 : ' ,confirmed,disagreed';
+      "Double Opt-In Customer Survey"@1000000072 : ' ,confirmed,disagreed';
+      "Dbl. Opt-In Product Requested"@1000000073 : Boolean;
+      "Dbl. Opt-In Survey Requested"@1000000074 : Boolean;
+      "Print Picture"@1000000082 : Boolean;
+      LineNo@1000000091 : Integer;
+      ParentLineNo@1000000092 : Integer;
+
+    PROCEDURE UpdateGroupVisibility@1000000001("Line No."@1000000000 : Integer;"Parent Line No."@1000000001 : Integer);
+    BEGIN
+      LineNo := 0;
+      IF ("Parent Line No."=0) THEN BEGIN
+        InitGroupVisibility;
+        CompanyContactVisible := NOT ("Line No."=ServiceItemLine);
+        ServiceItemOverviewVisible := "Line No."=ServiceItemLine;
+      END ELSE BEGIN
+        CompanyContactVisible := "Line No."=CompanyLine;
+        ContactVisible := "Parent Line No."=ContactLine;
+        TaskVisible := "Parent Line No."=TaskLine;
+        ServiceItemVisible := "Parent Line No."=ServiceItemLine;
+        ServiceItemOverviewVisible := FALSE;
+        ImageVisible := "Parent Line No."=ImageLine;
+        NoteVisible := "Parent Line No."=NoteLine;
+        DistributionVisible := "Parent Line No."=DistributionLine;
+      END;
+      EXIT;
+      IF GETRANGEMIN("Line Filter")<>"Line No." THEN BEGIN
+        SETRANGE("Line Filter","Line No.");
+        CurrPage.UPDATE(FALSE);
+      END;
+      CurrPage.EDITABLE := Status=Status::new;
+    END;
+
+    LOCAL PROCEDURE InitGroupVisibility@1000000003();
+    BEGIN
+      CompanyContactVisible := TRUE;
+      ContactVisible := FALSE;
+      TaskVisible := FALSE;
+      ServiceItemVisible := FALSE;
+      ImageVisible := FALSE;
+      NoteVisible := FALSE;
+      ServiceItemOverviewVisible := FALSE;
+      DistributionVisible := FALSE;
+    END;
+
+    LOCAL PROCEDURE SaveToContent@1000000000(ParentLineNo@1000000000 : Integer);
+    VAR
+      ServiceItemTypeL@1000000001 : Record 50011;
+      OutStreamL@1000000002 : OutStream;
+      VRLineL@1000000003 : Record 50084;
+    BEGIN
+      CASE ParentLineNo OF
+        DistributionLine:
+          BEGIN
+            OldContent."Distribution User ID" := "Distribution User ID";
+            OldContent."Distribution Salesperson Code" := "Distribution Salesperson Code";
+            OldContent.MODIFY(TRUE);
+          END;
+        ContactLine:
+          BEGIN
+            OldContent."Contact Name" := "Contact Name";
+            OldContent."Contact Name 2" := "Contact Name 2";
+            OldContent."Contact Language Code" := "Contact Language Code";
+            OldContent."Contact Lead" := "Contact Lead";
+            OldContent."Audition for contact required" := "Audition for contact required";
+            OldContent."Contact No." := "Person Contact No.";
+            OldContent."Contact Phone" := "Contact Phone No.";
+            OldContent."Contact Email" := "Contact E-Mail";
+            OldContent."Contact Org. Level Code" := "Contact Organizational Level Code";
+            OldContent."Contact Salutation Code" := "Contact Salutation Code";
+            OldContent."Double Opt-In Product and Comp" := "Double Opt-In Product and Comp";
+            OldContent."Double Opt-In Customer Survey" := "Double Opt-In Customer Survey";
+            OldContent."Dbl. Opt-In Product Requested" := "Dbl. Opt-In Product Requested";
+            OldContent."Dbl. Opt-In Survey Requested" := "Dbl. Opt-In Survey Requested";
+            // ABG1053   29.10.18  TMA ++++++++++
+            OldContent."Contact Mobile Phone No." := "Contact Mobile Phone No.";
+            OldContent."Contact Job Title" := "Contact Job Title";
+            OldContent."Contact Job Title Description" := "Contact Job Title Description";
+            OldContent."Contact Job ResponsibilityCode" := "Contact Job ResponsibilityCode";
+            // ABG1053   29.10.18  TMA ----------
+            OldContent.MODIFY(TRUE);
+          END;
+        TaskLine :
+          BEGIN
+            OldContent."Task Salesperson Code" := "Task Salesperson Code";
+            OldContent."Task Due Date" := "Task Due Date";
+            OldContent."Task int. Contact Name" := "Task int. Contact Name";
+            OldContent."Task int. Contact No." := "Task int. Contact No.";
+            OldContent."Task Description" := "Task Description";
+            OldContent."Task User ID" := "Task User ID";
+            OldContent."Task Workflow Team Code" := "Task Workflow Team Code";
+            OldContent."Task Long Description".CREATEOUTSTREAM(OutStreamL);
+            "Task Long Description".WRITE(OutStreamL);
+            OldContent.MODIFY(TRUE);
+          END;
+        ServiceItemLine :
+          BEGIN
+            ServiceItemTypeL.RESET;
+            ServiceItemTypeL.SETRANGE("Use for Competitor","Service Item Competitor");
+            ServiceItemTypeL.SETFILTER(Code,'MACHINE|COMPETITOR EQUIPMENT');
+            IF ServiceItemTypeL.FINDFIRST THEN
+              "Service Item Type" := ServiceItemTypeL.Code;
+            OldContent."Item No." := "Item No.";
+            OldContent."Service Item Description" := "Service Item Description";
+            OldContent."Service Item Status" := "Service Item Status";
+            OldContent."Audition for ServItem required" := "Audition for ServItem required";
+            OldContent."Service Item Attached to" := "Service Item Attached to";
+            OldContent."Service Item Type" := "Service Item Type";
+            OldContent."Service Item Commission No." := "Service Item Commission No.";
+            OldContent."Service Item OEM No." := "Service Item OEM Serviceartikelname";
+            OldContent."Service Item Product No. (Old)" := "Service Item Product No. (Old System)";
+            OldContent."Service Item Manufacturer Code" := "Service Item Manufacturer Code";
+            OldContent."Service Item Name external" := "Service Item Name external";
+            OldContent."Service Item Name internal" := "Service Item Name internal";
+            OldContent."Service Item Status Comment" := "Service Item Status Comment";
+            OldContent.MODIFY(TRUE);
+          END;
+        ImageLine :
+          BEGIN
+            OldContent."Picture Description" := "Image Description";
+            OldContent."Print Picture"       := "Print Picture";
+            IF ImageModified THEN
+              OldContent.Picture := Picture;
+            OldContent.MODIFY(TRUE);
+          END;
+        NoteLine :
+          BEGIN
+            OldContent."Sub Type" := "Sub Type";
+            IF CurrPage.Editor.PAGE.IsAddInReady THEN BEGIN
+
+              IF CurrPage.Editor.PAGE.GetText<>'' THEN
+                OldContent."Has Content" := TRUE
+              ELSE
+                OldContent."Has Content" := FALSE;
+              IF VRLineL.GET(OldContent."Visiting Entry No.", OldContent."Line No.") THEN BEGIN
+                OldContent.MODIFY(TRUE);
+                IF PageEditable THEN
+                  EditorMgt.SetContent(OldContent.RECORDID,1,CurrPage.Editor.PAGE.GetText,TRUE);
+              END;
+            END;
+          END;
+      END;
+      CurrPage.Navigation.PAGE.LoadDataFromRecord(Rec);
+    END;
+
+    LOCAL PROCEDURE LoadFromContent@1000000002(ParentLineNo@1000000000 : Integer);
+    VAR
+      ServiceItemTypeL@1000000001 : Record 50011;
+      EditorTextL@1000000002 : Text;
+      InStreamL@1000000003 : InStream;
+    BEGIN
+      ToDoNo := "To-do No.";
+      CASE ParentLineNo OF
+        DistributionLine:
+          BEGIN
+            "Distribution User ID" := Content."Distribution User ID";
+            "Distribution Salesperson Code" := Content."Distribution Salesperson Code";
+          END;
+        ContactLine :
+          BEGIN
+            "Contact Name" := Content."Contact Name";
+            "Contact Name 2" := Content."Contact Name 2";
+            "Contact Language Code" := Content."Contact Language Code";
+            "Contact Lead" := Content."Contact Lead";
+            "Audition for contact required" := Content."Audition for contact required";
+            "Person Contact No." := Content."Contact No.";
+            "Contact Phone No." := Content."Contact Phone";
+            "Contact E-Mail" := Content."Contact Email";
+            "Contact Organizational Level Code" := Content."Contact Org. Level Code";
+            "Contact Salutation Code" := Content."Contact Salutation Code";
+            "Double Opt-In Product and Comp" := Content."Double Opt-In Product and Comp";
+            "Double Opt-In Customer Survey" := Content."Double Opt-In Customer Survey";
+            "Dbl. Opt-In Product Requested" := Content."Dbl. Opt-In Product Requested";
+            "Dbl. Opt-In Survey Requested" := Content."Dbl. Opt-In Survey Requested";
+            "Contact County" := Content."Contact County";
+            ToDoNo := Content."To-do No.";
+            // ABG1053   29.10.18  TMA ++++++++++
+            "Contact Phone No." := Content."Contact Phone";
+            "Contact E-Mail":= Content."Contact Email";
+            "Contact Mobile Phone No." := Content."Contact Mobile Phone No.";
+            "Contact Job Title" := Content."Contact Job Title";
+            "Contact Job Title Description" := Content."Contact Job Title Description";
+            "Contact Job ResponsibilityCode" := Content."Contact Job ResponsibilityCode";
+            // ABG1053   29.10.18  TMA ----------
+
+          END;
+        TaskLine :
+          BEGIN
+            "Task Salesperson Code" := Content."Task Salesperson Code";
+            "Task Due Date" := Content."Task Due Date";
+            "Task int. Contact Name" := Content."Task int. Contact Name";
+            "Task int. Contact No." := Content."Task int. Contact No.";
+            "Task Description" := Content."Task Description";
+            ToDoNo := Content."To-do No.";
+            IF Content."Task User ID"='' THEN
+              "Task User ID" := USERID
+            ELSE
+              "Task User ID" := Content."Task User ID";
+            "Task Workflow Team Code" := Content."Task Workflow Team Code";
+            Content.CALCFIELDS("Task Long Description");
+            Content."Task Long Description".CREATEINSTREAM(InStreamL);
+            "Task Long Description".READ(InStreamL);
+          END;
+        ServiceItemLine :
+          BEGIN
+            "Service Item Description" := Content."Service Item Description";
+            "Service Item Status" := Content."Service Item Status";
+            "Audition for ServItem required" := Content."Audition for ServItem required";
+            "Item No." := Content."Item No.";
+            "Service Item Attached to" := Content."Service Item Attached to";
+            "Service Item Type" := Content."Service Item Type";
+            "Service Item Commission No." := Content."Service Item Commission No.";
+            "Service Item OEM Serviceartikelname" := Content."Service Item OEM No.";
+            "Service Item Product No. (Old System)" := Content."Service Item Product No. (Old)";
+            "Service Item Manufacturer Code" := Content."Service Item Manufacturer Code";
+            "Service Item Name external" := Content."Service Item Name external";
+            "Service Item Name internal" := Content."Service Item Name internal";
+            "Service Item Status Comment" := Content."Service Item Status Comment";
+            IF ServiceItemTypeL.GET("Service Item Type") THEN
+              "Service Item Competitor" := ServiceItemTypeL."Use for Competitor";
+            ToDoNo := Content."To-do No.";
+          END;
+        ImageLine :
+          BEGIN
+            "Image Description" := Content."Picture Description";
+            "Print Picture"     := Content."Print Picture";
+            Content.CALCFIELDS(Picture);
+            Picture := Content.Picture;
+            ToDoNo := Content."To-do No.";
+            CurrPage.UPDATE;
+          END;
+        NoteLine :
+          BEGIN
+            "Sub Type" := Content."Sub Type";
+            IF CurrPage.Editor.PAGE.IsAddInReady THEN BEGIN
+              CurrPage.Editor.PAGE.SetData(Content.RECORDID,1);
+              EditorTextL := EditorMgt.GetContent(Content.RECORDID,1);
+              IF EditorTextL='' THEN
+                CurrPage.Editor.PAGE.ClearContent
+              ELSE
+                CurrPage.Editor.PAGE.SetText(EditorTextL);
+              // ABG1067   03.10.19  TMA ++++++++++
+              CurrPage.Editor.PAGE.SetFont(EditorSetup."Editor Font Name",EditorSetup."Editor Font Size");
+              // ABG1067   03.10.19  TMA ----------
+            END;
+            ToDoNo := Content."To-do No.";
+          END;
+      END;
+
+      UpdateSupportingInformation;
+
+      DetailsModified := FALSE;
+      ImageModified := FALSE;
+      EditorModified := FALSE;
+    END;
+
+    LOCAL PROCEDURE UpdateSupportingInformation@1000000004();
+    VAR
+      FilterL@1000000000 : Text;
+      LanguageL@1000000001 : Text;
+    BEGIN
+      FilterL := 'XXX';
+      IF NoteVisible THEN BEGIN
+        CASE "Sub Type" OF
+          "Sub Type"::bonding :
+            FilterL := V_BOND;
+          "Sub Type"::cutting :
+            FilterL := V_CUTT;
+          "Sub Type"::handling :
+            FilterL := V_HAND;
+          "Sub Type"::services :
+            FilterL := V_SERV;
+          "Sub Type"::common :
+            FilterL := V_COMM;
+        END;
+      END;
+      LanguageL := E;
+      IF WINDOWSLANGUAGE=1031 THEN
+        LanguageL := D;
+      IF GETFILTER("Sub Type Filter")<>STRSUBSTNO(FilterL,LanguageL) THEN BEGIN
+        SETFILTER("Sub Type Filter", STRSUBSTNO(FilterL,LanguageL));
+        CurrPage.UPDATE;
+      END;
+    END;
+
+    LOCAL PROCEDURE UpdatePersonContact@1000000006();
+    BEGIN
+      DetailsModified := TRUE;
+
+      Lead := Cont.Lead;
+      "Contact Name" := Cont.Name;
+      "Contact Name 2" := Cont."Name 2";
+      "Double Opt-In Product and Comp" := Cont."Double Opt-In Product and Comp";
+      "Double Opt-In Customer Survey" := Cont."Double Opt-In Customer Survey";
+      "Contact Country/Region Code" := Cont."Country/Region Code";
+      "Contact Phone No." := Cont."Phone No.";
+      "Contact E-Mail" := Cont."E-Mail";
+      "Contact Organizational Level Code" := Cont."Organizational Level Code";
+      "Contact Salutation Code" := Cont."Salutation Code";
+      "Contact Language Code" := Cont."Language Code";
+      "Contact Lead" := Cont.Lead;
+      // ABG1053   29.10.18  TMA ++++++++++
+      "Contact Phone No." := Cont."Phone No.";
+      "Contact E-Mail":= Cont."E-Mail";
+      "Contact Mobile Phone No." := Cont."Mobile Phone No.";
+      "Contact Job Title" := Cont."Job Title";
+      "Contact Job Title Description" := Cont."Job Title Description";
+      "Contact Job ResponsibilityCode" := Cont."Job Responsibility Code";
+      // ABG1053   29.10.18  TMA ----------
+
+      SaveToContent(OldContent."Parent Line No.");
+    END;
+
+    PROCEDURE SetGroupVisibility@1000000005(LineNoP@1000000001 : Integer;ParentLineNoP@1000000000 : Integer);
+    VAR
+      VisitReportLineL@1000000002 : Record 50084;
+    BEGIN
+      LineNo := LineNoP;
+      ParentLineNo := ParentLineNoP;
+    END;
+
+    PROCEDURE GetGroupVisibility@1000000008(VAR LineNoP@1000000001 : Integer;VAR ParentLineNoP@1000000000 : Integer);
+    BEGIN
+      LineNoP := LineNo;
+      ParentLineNoP := ParentLineNo;
+    END;
+
+    EVENT PingPong@-1000000043::AddInReady@2();
+    BEGIN
+      CurrPage.PingPong.Ping(100);
+      //CurrPage.Editor.PAGE.DataEditor.SetFont(EditorSetup."Editor Font Name",EditorSetup."Editor Font Size");
+    END;
+
+    EVENT PingPong@-1000000043::Pong@3();
+    VAR
+      LineNo@1000000000 : Integer;
+      ParentLineNo@1000000001 : Integer;
+    BEGIN
+      IF "Entry No."<>0 THEN BEGIN
+        IF NOT OldContent.GET("Entry No.",Content."Line No.") THEN BEGIN
+          OldContent.TRANSFERFIELDS(Content);
+        END;
+        CurrPage.Navigation.PAGE.GetSelectedRecord(Content);
+        IF Content."Line No."<>OldContent."Line No." THEN BEGIN
+          UpdateGroupVisibility(Content."Line No.", Content."Parent Line No.");
+          IF (OldContent."Parent Line No."=NoteLine) THEN
+            IF (EditorMgt.GetContent(OldContent.RECORDID,1)<>CurrPage.Editor.PAGE.GetText) THEN
+              DetailsModified := TRUE;
+          IF DetailsModified THEN
+            SaveToContent(OldContent."Parent Line No.");
+          LoadFromContent(Content."Parent Line No.");
+        END;
+      END;
+
+      CurrPage.PingPong.Ping(100);
+    END;
+
+    EVENT MCEdit@1000000077::AutoSizeChanged@207(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::AutoValidateChanged@208(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Load@209(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::TextChanged@210(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Scroll@211(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ScrollEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::BackColorChanged@212(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::BackgroundImageChanged@213(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::BackgroundImageLayoutChanged@214(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::BindingContextChanged@215(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::CausesValidationChanged@216(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ClientSizeChanged@217(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ContextMenuChanged@218(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ContextMenuStripChanged@219(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::CursorChanged@220(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DockChanged@221(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::EnabledChanged@222(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::FontChanged@223(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ForeColorChanged@224(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::LocationChanged@225(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MarginChanged@226(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::RegionChanged@227(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::RightToLeftChanged@228(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::SizeChanged@229(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::TabIndexChanged@230(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::TabStopChanged@231(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::VisibleChanged@232(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Click@233(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ControlAdded@234(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ControlRemoved@235(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.ControlEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DragDrop@236(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DragEnter@237(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DragOver@238(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.DragEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DragLeave@239(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::GiveFeedback@240(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.GiveFeedbackEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::HandleCreated@241(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::HandleDestroyed@242(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::HelpRequested@243(sender@1000000001 : Variant;hlpevent@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.HelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Invalidated@244(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.InvalidateEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::PaddingChanged@245(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Paint@246(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PaintEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::QueryContinueDrag@247(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryContinueDragEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::QueryAccessibilityHelp@248(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.QueryAccessibilityHelpEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::DoubleClick@249(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Enter@250(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::GotFocus@251(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::KeyDown@252(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::KeyPress@253(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyPressEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::KeyUp@254(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.KeyEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Layout@255(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.LayoutEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Leave@256(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::LostFocus@257(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseClick@258(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseDoubleClick@259(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseCaptureChanged@260(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseDown@261(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseEnter@262(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseLeave@263(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseHover@264(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseMove@265(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseUp@266(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::MouseWheel@267(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.MouseEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Move@268(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::PreviewKeyDown@269(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.PreviewKeyDownEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Resize@270(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ChangeUICues@271(sender@1000000001 : Variant;e@1000000000 : DotNet "'System.Windows.Forms, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.Windows.Forms.UICuesEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::StyleChanged@272(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::SystemColorsChanged@273(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Validating@274(sender@1000000001 : Variant;e@1000000000 : DotNet "'System, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.ComponentModel.CancelEventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Validated@275(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ParentChanged@276(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::ImeModeChanged@277(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    EVENT MCEdit@1000000077::Disposed@278(sender@1000000001 : Variant;e@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.EventArgs");
+    BEGIN
+    END;
+
+    BEGIN
+    {
+      +--------------------------------------------------------------+
+      |                  Albrecht BÑumer GmbH                        |
+      +--------------------------------------------------------------+
+      Modul     Date      User      Description
+      ABG1017   07.03.18  TMA       New field "Contact County"
+      ABG1027   09.05.18  TMA       New Field 50050,50060,50070
+      ABG1041   20.06.18  TMA       New Field 4020 "Print Picture"
+            get E-Mail and Phone from existing Contact
+      ABG1067   03.10.19  TMA       Use new function SetFont to establish configured standard font
+
+      DW05.01 04.03.18 Ornith.mlg DocuWare-Schnittstelle
+    }
+    END.
+  }
+}
+
+OBJECT Page 5137890 Editor Subpage
+{
+  OBJECT-PROPERTIES
+  {
+    Date=03.10.19;
+    Time=16:33:11;
+    Modified=Yes;
+    Version List=MI9.00.02_HFEditor,MC0265,ABG1067;
+  }
+  PROPERTIES
+  {
+    CaptionML=[DEU=Editor;
+               ENU=Editor];
+    SourceTable=Table279;
+    PopulateAllFields=No;
+    PageType=CardPart;
+    OnInit=BEGIN
+             //MET 06.02.17 TBR +++++
+             GetEditorSetup;
+             //MET 06.02.17 TBR -----
+             // ABG1017 07.03.18 TMA ++++++++++++++++++++
+             AddInReady := FALSE;
+             // ABG1017 07.03.18 TMA --------------------
+           END;
+
+    OnQueryClosePage=VAR
+                       SaveOkL@5130100 : Boolean;
+                     BEGIN
+                       //MC 12.12.16 AB +++++++++++++++
+                       IF NotEditable = FALSE THEN BEGIN  //BEGIN added 23.08.17 AB +++++
+                       //MC 12.12.16 AB ---------------
+
+                       //MET 06.12.16 TBR +++++++++++
+                       //MET 15.07.16 TBR +++++++++
+                       IF NOT RecordDeleted THEN
+                       //MET 15.07.16 TBR ---------
+                         IF CurrPage.DataEditor.IsEmpty THEN BEGIN
+                           //MET 28.08.17 TBR +++++++++++++++++++++
+                           {
+                           //MET 28.08.17 TBR ---------------------
+                           EditorMgt.DeleteContent(RecID);
+                           //MET 28.08.17 TBR +++++++++++++++++++++
+                           }
+                           // MC.SN 25.04.19 JZ
+                           EditorMgt.SetLanguageCode("Language Code");
+                           EditorMgt.SetDeleteSpecificLanguageContent;
+                           // MC.EN 25.04.19 JZ
+                           EditorMgt.DeleteExplicitContent(RecID, TextPosition);
+                           //MET 28.08.17 TBR ---------------------
+                           SaveOkL := TRUE;
+                         END ELSE BEGIN
+                           SaveOkL := CurrPage.DataEditor.CheckPlaceholders;
+                           IF SaveOkL THEN
+                             IF CurrPage.DataEditor.HasValueChanged THEN BEGIN
+                               txt := CurrPage.DataEditor.Text;
+                               //MC 30.11.16 AB +++++++++++++++
+                               EditorMgt.SetLanguageCode(LanguageCode);
+                               //MC 30.11.16 AB ---------------
+                               EditorMgt.SetContent(RecID,TextPosition,txt,TRUE);
+                               EditorMgt.SetRecord(RecID,TextPosition, TRUE, EditorContent);
+                             END;
+                       //MET 22.08.17 AB +++++++++++++++
+                       {
+                       //MET 22.08.17 AB ---------------
+                         END;
+                       //MET 22.08.17 AB +++++++++++++++
+                       }
+                         END
+                       ELSE
+                         SaveOkL := TRUE;
+                       //MET 22.08.17 AB ---------------
+
+                       //MC 23.08.17 AB +++++++++++++++
+                       END
+                       ELSE
+                         SaveOkL := TRUE;
+                       //MC 23.08.17 AB ---------------
+
+                       EXIT(SaveOkL);
+                       //MET 06.12.16 TBR -------------
+                     END;
+
+    OnAfterGetCurrRecord=VAR
+                           InStr@5130100 : InStream;
+                           reader@5130099 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.StreamReader";
+                         BEGIN
+                         END;
+
+    ActionList=ACTIONS
+    {
+      { 5130109 ;    ;ActionContainer;
+                      ActionContainerType=ActionItems }
+      { 5130129 ;1   ;Action    ;
+                      CaptionML=[DEU=Druckzuordnung;
+                                 ENU=Print assignment];
+                      Image=BulletList;
+                      OnAction=VAR
+                                 EditorContentL@5130099 : Record 5137890;
+                                 EditorAssignmentPageL@5130100 : Page 5137892;
+                                 SaveOkL@5130101 : Boolean;
+                               BEGIN
+                                 SaveOkL := CurrPage.DataEditor.CheckPlaceholders;
+                                 IF SaveOkL THEN BEGIN
+                                     txt := CurrPage.DataEditor.Text;
+                                     //MC 30.11.16 AB +++++++++++++++
+                                     EditorMgt.SetLanguageCode(LanguageCode);
+                                     //MC 30.11.16 AB ---------------
+                                     EditorMgt.SetContent(RecID,TextPosition,txt,TRUE);
+                                     EditorMgt.SetRecord(RecID,TextPosition, TRUE, EditorContent);
+                                     ContentFound := TRUE;
+                                 END;
+                                 COMMIT;
+
+                                 IF (Area = 'Customer') OR (Area = 'Sales') THEN
+                                     EditorAssignmentPageL.SetGroupVisibility(TRUE,FALSE,FALSE,FALSE)
+                                 ELSE IF (Area = 'Vendor') OR (Area = 'Purchase') THEN
+                                     EditorAssignmentPageL.SetGroupVisibility(FALSE,TRUE,FALSE,FALSE)
+                                 ELSE IF (Area = 'Production') THEN
+                                     EditorAssignmentPageL.SetGroupVisibility(FALSE,TRUE,TRUE,FALSE)
+                                 ELSE IF (Area = 'Standard') THEN
+                                     EditorAssignmentPageL.SetGroupVisibility(FALSE,FALSE,FALSE,FALSE)
+                                 ELSE
+                                     EditorAssignmentPageL.SetGroupVisibility(TRUE,TRUE,TRUE,TRUE);
+
+
+                                 IF ContentFound THEN BEGIN
+                                   EditorAssignmentPageL.SETTABLEVIEW(EditorContent);
+                                   EditorAssignmentPageL.RUN;
+                                 END ELSE BEGIN
+                                   EditorMgt.SetRecord(RecID, TextPosition, TRUE, EditorContent);
+                                   EditorAssignmentPageL.SETTABLEVIEW(EditorContent);
+                                   EditorAssignmentPageL.RUN;
+                                 END;
+                               END;
+                                }
+    }
+  }
+  CONTROLS
+  {
+    { 5130099; ;Container ;
+                Name=Allge;
+                ContainerType=ContentArea }
+
+    { 5130100;1;Field     ;
+                Name=DataEditor;
+                ControlAddIn=[ModusConsult.General.RichTextAddinNav90.RichTextControlAddin;PublicKeyToken=4f5309d2a62f4cdd];
+                OnControlAddIn=VAR
+                                 InS@1000000003 : InStream;
+                                 StreamReader@1000000002 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.StreamReader";
+                                 OutS@1000000001 : OutStream;
+                                 StreamWriter@1000000000 : DotNet "'mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089'.System.IO.StreamWriter";
+                               BEGIN
+                               END;
+
+                ShowCaption=No }
+
+  }
+  CODE
+  {
+    VAR
+      txt@5130100 : Text;
+      EditorMgt@5130102 : Codeunit 5137890;
+      EditorContent@5130103 : Record 5137890;
+      EditorSetup@5130115 : Record 5137891;
+      RecID@5130104 : RecordID;
+      TextPosition@5130105 : 'Header,Line,Footer';
+      RecordDeleted@5130109 : Boolean;
+      ContentFound@5130106 : Boolean;
+      TextMI001@5130101 : TextConst 'DEU=Inhalt des Editors:;ENU=Content of editor:';
+      TextSave01@5130107 : TextConst 'DEU=Speichern,Lîschen;ENU=Save,Delete';
+      Area@5130108 : Text;
+      CallPageNo@5130111 : Integer;
+      TextMI002@5130099 : TextConst 'DEU=Bitte erst die Platzhalter ÅberprÅfen;ENU=PLease check placeholders';
+      TextMI003@5130110 : TextConst 'DEU=wirklich beenden?;ENU=really?';
+      EditorSetupRead@5130114 : Boolean;
+      TextMI005@5130112 : TextConst 'DEU=Bitte in der Editor Einrichtung den Editor Font und die Editor Fontgrîsse kontrollieren;ENU="Please check in engineeringsetup editorfont and editorfontsize "';
+      EditPage@5130113 : Boolean;
+      "*MC**************************"@50001 : Integer;
+      LanguageCode@50000 : Code[10];
+      NotEditable@50002 : Boolean;
+      AddInReady@1000000000 : Boolean;
+
+    PROCEDURE SetData@5130100(RecIDV@5130100 : RecordID;TextPositionV@5130101 : 'Header,Line,Footer');
+    BEGIN
+      RecID := RecIDV;
+      TextPosition := TextPositionV;
+      //MC 30.11.16 AB +++++++++++++++
+      EditorMgt.SetLanguageCode(LanguageCode);
+      //MC 30.11.16 AB ---------------
+      //MC 23.08.17 AB +++++++++++++++
+      {
+      //MC 23.08.17 AB ---------------
+      EditorContent.SETRANGE("Record ID",RecIDV);
+      EditorContent.SETRANGE(Position,TextPositionV);
+
+      //MC 27.01.17 AB +++++++++++++++
+      EditorContent.SETRANGE("Language Code",LanguageCode);
+      //MC 27.01.17 AB ---------------
+
+      //MET 17.01.17 TBR +++++++++++++++++++++++
+      IF EditorContent.FINDFIRST THEN BEGIN
+        ContentFound := TRUE;
+        CurrPage.DataEditor.Text := EditorMgt.GetContent(RecID,TextPosition);
+      //MC 18.07.17 AB +++++++++++++++
+      END
+      ELSE BEGIN
+        CurrPage.DataEditor.SetFont(EditorSetup."Editor Font Name",EditorSetup."Editor Font Size");
+      //MC 18.07.17 AB ---------------
+      END;
+      //MET 17.01.17 TBR -----------------------
+      //MC 23.08.17 AB +++++++++++++++
+      }
+      //MC 23.08.17 AB ---------------
+    END;
+
+    PROCEDURE SetDataNew@5130099(RecIDV@5130100 : RecordID;TextPositionV@5130099 : 'Header,Line,Footer');
+    BEGIN
+      RecID := RecIDV;
+      TextPosition := TextPositionV;
+      //MC 30.11.16 AB +++++++++++++++
+      EditorMgt.SetLanguageCode(LanguageCode);
+      //MC 30.11.16 AB ---------------
+    END;
+
+    PROCEDURE GetEditorData@5130101(VAR TxtV@5130099 : Text;VAR EditorContentV@5130100 : Record 5137890);
+    BEGIN
+      TxtV := CurrPage.DataEditor.Text;
+      EditorContentV := EditorContent;
+    END;
+
+    PROCEDURE SetTableName@5130102(TableNameV@5130099 : Text);
+    BEGIN
+      Area := TableNameV;
+    END;
+
+    PROCEDURE SetDeleted@5130103(DeletedV@5130099 : Boolean);
+    BEGIN
+      RecordDeleted := DeletedV;
+    END;
+
+    PROCEDURE GetText@5130104() : Text;
+    BEGIN
+      EXIT(CurrPage.DataEditor.Text);
+    END;
+
+    PROCEDURE SetText@5130105(TextV@5130099 : Text);
+    BEGIN
+      //MC 23.08.17 AB ++++++++++++++
+      IF TextV = '' THEN
+        TextV := EditorMgt.GetContent(RecID,TextPosition);
+      IF TextV <> '' THEN
+      //MC 23.08.17 AB --------------
+      CurrPage.DataEditor.Text := TextV;
+    END;
+
+    LOCAL PROCEDURE GetEditorSetup@5130106();
+    BEGIN
+      IF NOT EditorSetupRead THEN BEGIN
+        EditorSetup.GET;
+        IF (EditorSetup."Editor Font Name" = '') OR
+           (EditorSetup."Editor Font Size" = 0) THEN
+           ERROR(TextMI005);
+        EditorSetupRead := TRUE;
+      END;
+    END;
+
+    LOCAL PROCEDURE "***MC*****************************"@50000();
+    BEGIN
+    END;
+
+    PROCEDURE SetLanguageCode@50001(LanguageCodeV@50000 : Code[10]);
+    BEGIN
+      //MC 30.11.16 AB +++++++++++++++
+      LanguageCode := LanguageCodeV;
+      //MC 30.11.16 AB ---------------
+    END;
+
+    PROCEDURE SetNotEditable@50002();
+    BEGIN
+      //MC 12.12.16 AB +++++++++++++++
+      NotEditable := TRUE;
+      //MC 12.12.16 AB ---------------
+    END;
+
+    PROCEDURE IsAddInReady@1000000000() : Boolean;
+    BEGIN
+      // ABG1017 07.03.18 TMA ++++++++++++++++++++
+      EXIT(AddInReady);
+      // ABG1017 07.03.18 TMA --------------------
+    END;
+
+    PROCEDURE ClearContent@1000000001();
+    BEGIN
+      // ABG1017 07.03.18 TMA ++++++++++++++++++++
+      CurrPage.DataEditor.Text := '';
+      // ABG1017 07.03.18 TMA --------------------
+    END;
+
+    LOCAL PROCEDURE "***ABG*****************************"@1000000002();
+    BEGIN
+    END;
+
+    PROCEDURE SetFont@1000000003(FontNameL@1000000000 : Text;FontSizeL@1000000001 : Decimal);
+    BEGIN
+      // ABG1067 03.10.19 TMA ++++++++++++++++++++
+      CurrPage.DataEditor.SetFont(FontNameL,FontSizeL);
+      // ABG1067 03.10.19 TMA --------------------
+    END;
+
+    EVENT DataEditor@-5130100::AddInReady@56();
+    BEGIN
+      //MET 02.02.17 TBR ++++++++++++++++++++++++++++
+      EditorContent.SETRANGE("Record ID",RecID);
+      EditorContent.SETRANGE(Position,TextPosition);
+      //MC 27.01.17 AB +++++++++++++++
+      EditorContent.SETRANGE("Language Code",LanguageCode);
+      //MC 27.01.17 AB ---------------
+      IF EditorContent.FINDFIRST THEN BEGIN
+        ContentFound := TRUE;
+        CurrPage.DataEditor.Text := EditorMgt.GetContent(RecID,TextPosition);
+      END
+      ELSE BEGIN
+        //MET 06.02.17 TBR +++++++
+        {
+        //MET 06.02.17 TBR -------
+        GetEngineeringSetup;
+        //MET 06.02.17 TBR +++++++
+        }
+        //MET 06.02.17 TBR -------
+        CurrPage.DataEditor.SetFont(EditorSetup."Editor Font Name",EditorSetup."Editor Font Size");
+      END;
+      //MET 02.02.17 TBR ----------------------------
+      // ABG1017 07.03.18 TMA ++++++++++++++++++++
+      AddInReady := TRUE;
+      // ABG1017 07.03.18 TMA --------------------
+
+    END;
+
+    BEGIN
+    {
+      +--------------------------------------------------------------+
+      |                  Copyright MODUS Consult AG                  |
+      |                       Engineering                            |
+      +--------------------------------------------------------------+
+      Module    Date      User      Description
+      MET       29.02.16  TBR       Object created
+      MET       15.07.16  TBR       No Dialog when deleting header
+      MET       27.07.16  TBR       Save in RTF-Format
+      MET       06.12.16  TBR       Reorganize code and transfer code to "OnQueryClosePage"
+      MET       17.01.17  TBR       Change code in function SetData for actual RecordID and new entries
+      MET       22.08.17  AB   752  OnQueryClosePage must return "true" if deleting the record (change in CU19 behaviour) if not Page will freeze
+
+      +--------------------------------------------------------------+
+      |                  Copyright MODUS Consult AG                  |
+      |                         Customizing                          |
+      +--------------------------------------------------------------+
+      Modul     Date      User  Reference   Description
+      MC        30.11.16  AB                Fix Multilanguage Texts
+      MC        01.02.17  AB    FA-78423    new Addin for VariantReplacement (MI9.00.03 BF)
+      ABG       16.06.17  TMA               Move Editor-Load to AddInReady()
+      MC        18.07.17  AB    FA-82201    merge changes from MI9SP4 for EditorFont Functionality
+      MC        01.09.17  AB                merge Editor fixes from MI
+      MC        01.09.17  AB                Editor Multilanguage-Code Bugfixes
+      ABG1017   07.03.18  TMA               New functions IsAddInReady,ClearContent (called by P50160)
+      MC        28.09.18  JZ   SA00095555   Refresch Controll add in
+      MC        28.09.18  JZ   SA00095555   Insert Code from old version, in function "DataEditor::AddInReady"
+      MC        20.11.18  MBE   Todo 402    New RichText Addin Variable
+      MC        21.11.18  MBE   Todo 307    New RichText Addin Variable 1.0.1811.3
+      MC        29.01.19  MBE   Todo 694    New RichText Addin Variable 1.0.1901.1
+      MC        25.04.19  JZ    ToDo 822    call function SetLanguageCode, SetDeleteSpecific from EditorMgt
+      ABG1067   03.10.19  TMA               Set Default Font
+    }
+    END.
+  }
+}
+
